@@ -1,4 +1,0 @@
-all: fitz
-
-fitz: fitz.c
-	gcc -Wall -pedantic -std=c99 -o fitz fitz.c
