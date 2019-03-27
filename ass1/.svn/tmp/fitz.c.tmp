@@ -1,0 +1,733 @@
+//
+// Created by brakchen on 2018/8/6.
+//
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define TILE_HEIGHT 5
+#define TILE_WIDTH 5
+
+
+struct tileInfo{
+    int numOfTile;
+    char **tile;
+    int index;
+} t={
+        0,
+        NULL,
+        0,
+};
+
+struct player{
+    char shape;
+    char type;
+    int win;
+
+}player={
+  .win=0,
+};
+
+struct boardInfo{
+    int height;
+    int width;
+    char **board;
+    int index;
+} board={
+        0,
+        0,
+        NULL,
+        0,
+};
+
+struct start{
+    int aNext;
+    int rNext;
+    int cNext;
+    int turns;
+} start={
+        0,
+        -2,
+        -2,
+        0,
+};
+
+
+void rotate(char **);
+
+void read_tile_from_file(char *);
+char **malloc_one_Tile_space();
+char **martix_transitive(char *);
+char **martix_rotate(char **);
+
+void place_tile_in_board(char **,int ,int ,char,int);
+
+void game_start(int, char **);
+void stdin_check(char,char **);
+void show_rotated_matrix();
+void handle_err(int);
+void print_tile(char **);
+void print_board();
+int auto_play_one(char,char **);
+int auto_play_two(char,char **);
+int is_placable(char **, int , int );
+
+
+
+
+
+
+int main(int argv,char **args){
+    char *filename=NULL;
+    switch (argv){
+        case 2:
+<<<<<<< .mine
+            //printf("%s",filename);
+=======
+            filename=args[1];
+>>>>>>> .r6
+            read_tile_from_file(filename);
+            show_rotated_matrix();
+            if (t.tile!=NULL){
+                for (int j = 0; j <t.numOfTile ; j++) {
+                    free((void *)*(t.tile+j));
+                }
+                free((void *)t.tile);
+<<<<<<< .mine
+            }
+=======
+             }
+>>>>>>> .r6
+            break;
+        case 5:
+            //the name of a file containing a saved game to load
+            //demo:fitz tilefile [p1type p2type [height width]]
+            read_tile_from_file(filename);
+            if (t.tile!=NULL){
+                for (int j = 0; j <t.numOfTile ; j++) {
+                    free((void *)*(t.tile+j));
+                }
+                free(t.tile);
+            }
+            break;
+
+        case 6:
+            //board height width readed
+            //demo:fitz tilefile [p1type p2type [height width]]
+            read_tile_from_file(filename);
+            int height=atoi(args[4]),width=atoi(args[5]);
+            if (height<=1 || width<=1){
+
+               //printf("height:%d width:%d\n",height,width);
+                handle_err(5);
+            }else{
+                board.height=height,board.width=width;
+                //printf("height:%d width:%d\n",(height<=999&&height>=1),(width<=999 &&width>=1));
+                //calloc board
+                board.board=(char **)calloc((unsigned int)board.height, sizeof(char
+                *));
+                for(int i =0;i<board.height;i++){
+                    *(board.board+i)=(char *)calloc(board.width,sizeof(char *));
+                    memset(*(board.board+i),'.',board.width);
+                }
+            print_board();
+            //start the game
+            game_start(argv, args);
+            //free board
+            if(board.board!=NULL){
+                for(int i=0;i<board.height;i++){
+                    free((void *)(*(board.board+i)));}
+                free((void *)board.board);
+            }
+            //free tile
+            if (t.tile!=NULL){
+                for (int j = 0; j <t.numOfTile ; j++) {
+                    free((void *)*(t.tile+j));
+                }
+                free(t.tile);
+            }
+<<<<<<< .mine
+=======
+            }
+>>>>>>> .r6
+            break;
+        default:
+            printf("Usage: %s tilefile [p1type p2type [height width | "
+                   "filename]]\n",args[0]);
+            //Program started with incorrect number of arguments
+            exit(1);
+    }
+<<<<<<< .mine
+    free((void *)filename);
+=======
+    free(filename);
+>>>>>>> .r6
+    return 0;
+
+}
+
+void game_start(int argv, char **args){
+    struct player playerOne;
+    struct player playerTwo;
+    playerOne.shape='*';
+    playerTwo.shape='#';
+    playerOne.win=0;
+    playerTwo.win=0;
+
+    if((strcmp(args[2],"1")==0||strcmp(args[2],"2")==0||strcmp(args[2],"h")==0)
+       && (strcmp(args[3],"1")==0||strcmp(args[3],"2")==0||strcmp(args[3], "h")==0)){
+        playerOne.type=*args[2];
+        playerTwo.type=*args[3];
+
+    } else{
+        handle_err(4);
+    }
+
+    char **tmp=NULL;
+    while (1){
+        //printf("run\n");
+        if(t.index>=t.numOfTile){
+            t.index=0;
+        }
+        tmp=martix_transitive(*(t.tile+t.index));
+        switch (playerOne.type){
+
+            case '1':
+                //should run type1
+                if(playerTwo.win!=1){
+
+                    playerOne.win=auto_play_one(playerOne.shape,tmp);
+                }
+                break;
+            case '2':
+                //should run type2
+                auto_play_two(playerOne.shape,tmp);
+                break;
+            case 'h':
+                //should wait stdin
+                stdin_check(playerOne.shape,tmp);
+                break;
+            default:
+                break;
+        }
+        for(int i=0;i<5;i++){
+            free((void *)(*(tmp+i)));
+    }
+
+            free((void *)tmp);
+
+        tmp=martix_transitive(*(t.tile+t.index));
+
+        switch (playerTwo.type){
+            case '1':
+                if(playerOne.win!=1){
+                    playerTwo.win=auto_play_one(playerTwo.shape,tmp);
+                }
+                break;
+            case '2':
+                auto_play_two(playerTwo.shape,tmp);
+                break;
+            case 'h':
+                stdin_check(playerTwo.shape,tmp);
+                break;
+            default:
+                break;
+        }
+        for(int i=0;i<5;i++){
+            free((void *)(*(tmp+i)));
+    }
+
+            free((void *)tmp);
+
+
+        if (playerOne.win){
+            printf("Player %c wins\n",playerTwo.shape);
+            break;
+
+        }
+        if (playerTwo.win){
+            printf("Player %c wins\n",playerOne.shape);
+            break;
+        }
+            }
+    }
+
+
+void stdin_check(char player,char **tmp){
+    //this function will call by diff player
+    char ch;
+    int i=0,angle=0,x,y,rotation=0,error=0;
+    if(t.index>=t.numOfTile){
+        t.index=0;
+    }
+    while (1){
+        char string[5]={'\0'};
+        int argvs[3]={0};
+        int space=0;
+
+        printf("\n");
+        i=0;
+        if (!error){
+            print_tile(tmp);
+        }
+        printf("Player %c] ",player);
+        do{
+            ch=fgetc(stdin);
+            if(ch==' '|| ch=='\n'){
+                argvs[space]=atoi(string);
+                space++;
+                i=0;
+                memset(string,'\0',5);
+                //printf("in loop:%d\n",argvs[space]);
+
+            }else{
+                string[i]=ch;
+                i++;
+            }
+        }while (ch!='\n');
+        //check three space
+        if(space==3){
+            x=argvs[0];
+            y=argvs[1];
+            angle=argvs[2];
+            error=0;
+        }else{
+            //printf("three space error\n");
+            error=1;
+            continue;
+
+        }
+        //check angle range
+        if(angle==0||angle==90||angle==180||angle==270){
+            rotation=angle/90;
+            for (int k = 0; k <rotation ; k++) {
+                rotate(tmp);
+            }
+            //printf("rotation right :%d",rotation);
+            error=0;
+        }else{
+            printf("roration error\n");
+            error=1;
+            continue;
+        };
+        if(is_placable(tmp, x, y)){
+            error=0;
+            t.index++;
+
+            place_tile_in_board(tmp,x,y,player,rotation);
+        }else{
+            error=1;
+            continue;
+        }
+        break;
+
+
+
+    }
+}
+
+
+
+
+int auto_play_one(char player,char **tmp){
+    int r=-2,c=-2,startAngle=0,fixedAngle=90;
+    if(start.turns==0){
+        //player1
+        r=-2;
+        c=-2;
+        startAngle=0;
+        fixedAngle=90;
+    } else{
+        r=start.rNext;
+        c=start.cNext;
+        startAngle=0;
+    }
+
+    while (1){
+        //printf("now player :%c\n",player);
+        int rotation=startAngle/fixedAngle;
+        //printf("passing c:%d r:%d to %c\n",r,c,player);
+        if(is_placable(tmp, r, c)){
+//        if(!has_tile_overlap(tmp, c, r) && !has_tile_off_board(tmp, c, r)){
+            //can place
+            printf("Player %c => %d %d rotated %d\n",player,r,c,
+               rotation);
+            place_tile_in_board(tmp,r,c,player,rotation);
+            start.turns++;
+            start.rNext=r;
+            start.cNext=c;
+            start.aNext=startAngle;
+            t.index++;
+            return 0;
+
+
+        }
+
+        c++;
+        if(c>board.width+2){
+            c=-2;
+            r++;
+        }
+        if(r>board.height+2){
+            r=-2;
+        }
+        if(r==start.rNext&&c==start.cNext){
+            //printf("now rstart:%d cstart:%d\n",start.rNext,start.cNext);
+            startAngle+=90;
+        }
+
+        if(startAngle>270){
+//            printf("player:%c c:%d r:%d angle:%d rotation:%d\n",player,c,r,
+//                   startAngle, rotation);
+            start.turns++;
+            start.rNext=r;
+            start.cNext=c;
+            start.aNext=startAngle;
+            return 1;
+        }
+
+
+    }
+
+
+
+}
+int auto_play_two(char player,char **tmp){
+    int r=-2,c=-2,startAngle=0,fixedAngle=90;
+    if(start.turns==0&&player=='*'){
+        //player1
+        r=-2;
+        c=-2;
+        startAngle=0;
+        fixedAngle=90;
+    }else if(start.turns==0&&player=='#'){
+        r=board.width+2;
+        c=board.height+2;
+        startAngle=0;
+        fixedAngle=90;
+
+    } else{
+        r=start.rNext;
+        c=start.cNext;
+        startAngle=0;
+    }
+
+    while (1){
+
+        int rotation=startAngle/fixedAngle;
+        if(is_placable(tmp, r, c)){
+            printf("Player %c => %d %d rotated %d\n",player,r,c,
+                   rotation);
+            place_tile_in_board(tmp,r,c,player,rotation);
+            start.turns++;
+            start.rNext=r;
+            start.cNext=c;
+            start.aNext=startAngle;
+            t.index++;
+            return 0;
+
+
+        }
+
+        startAngle+=90;
+        if(startAngle>270){
+            if(player=='*'){
+
+                c++;
+                if(c>board.width+2){
+                    c=-2;
+                    r++;
+                }
+                if(r>board.height+2){
+                    r=-2;
+                }
+
+            }else if (player=='#'){
+
+                r--;
+                if(c>-2){
+                    c=board.height+2;
+                }
+                if(r>-2){
+                    c--;
+                    r=board.width+2;
+                }
+
+            }
+        }
+
+        if(r==start.rNext&&c==start.cNext){
+            start.turns++;
+            start.rNext=r;
+            start.cNext=c;
+            start.aNext=startAngle;
+            return 1;
+        }
+
+
+
+
+    }
+
+
+}
+
+int is_placable(char **tile, int x, int y){
+    char **tmp=tile;
+    for(int i=0 ;i < 5 ;i++) {
+        for (int j = 0; j < 5; j++) {
+            if (*(*(tmp + i) + j) == '!') {
+                int relativeX = i - 2 + x;
+                int relativeY = j - 2 + y;
+                if (relativeX < 0 || relativeX > board.height-1 || relativeY<
+                        0 || relativeY > board.width-1) {
+                    //printf("off boarded\n");
+                    return 0;
+                }
+
+                if (*(*(board.board +relativeX) + relativeY) == '#' ||
+                    *(*(board.board + relativeX) + relativeY) == '*'){
+                    //printf("overlaped\n");
+                    return 0;
+
+                }
+            }
+        }
+    }
+    return 1;
+}
+
+void place_tile_in_board(char **tile,int x,int y,char player,int rotation){
+
+    char **tmp=tile;
+    for(int i=0 ;i < 5 ;i++){
+        for (int j = 0; j < 5; j++) {
+            int relativeX=i-2+x;
+            int relativeY=j-2+y;
+                if (*(*(tmp+i)+j)=='!'){
+                        *(*(board.board + relativeX) + relativeY)=player;
+                }
+        }
+    }
+    print_board();
+}
+
+void print_tile(char **tile){
+    char **tmp=tile;
+    for (int i = 0; i <5 ; i++) {
+        for (int j = 0; j <5 ; j++) {
+            printf("%c",*(*(tmp+i)+j));
+        }
+        printf("\n");
+    }
+
+}
+
+void read_tile_from_file(char *fileName){
+
+    FILE *fileOpen=NULL;
+    char  **tile= (char **)calloc(1,sizeof(char*));
+    *(tile)=(char *)calloc(TILE_HEIGHT*TILE_HEIGHT,sizeof(char));
+
+//    char tempArray[25]={'a'};
+    fileOpen=fopen(fileName,"r");
+
+    if(fileOpen!=NULL){
+        char *tempArray=(char *)calloc(25, sizeof(char));
+        char ch='a';
+        int count=0,i=0;
+
+        while ((ch=fgetc(fileOpen))!=EOF){
+            if(ch!='\n'){
+                count=0;
+                tempArray[i]=ch;
+                i++;
+                if(i==25) {
+                    for (int k = 0; k <25 ; k++) {
+                        *(*(tile+t.numOfTile)+k)=*(tempArray+k);
+                    }
+                    //memcpy(tile[t.numOfTile], tempArray, 25);
+                    t.numOfTile++;
+                }
+            }else{
+                count++;
+                if(count==2){
+                    i=0;
+                    tile=realloc(tile, sizeof(char *)*(t.numOfTile+1));
+                    if(tile!=NULL){
+                   // memset(tile+t.numOfTile,sizeof(char*),1);
+                        *(tile+t.numOfTile)= (char *)calloc
+                                (TILE_HEIGHT*TILE_WIDTH
+                                ,sizeof(char));
+                    };
+                }
+            }
+        }
+        free((void *)tempArray);
+        fclose(fileOpen);
+    }else{
+        //Tile fıle can’t be read
+        exit(2);
+    }
+   //give it to other var
+    t.tile=tile;
+
+}
+
+
+char **martix_rotate(char **a){
+    //a new  temp memory
+    //TODO:free the temp
+    char **temp=(char **)calloc(TILE_WIDTH,sizeof(char *));
+
+    for(int i=0;i<TILE_WIDTH;i++){
+        *(temp+i)=(char *)calloc(TILE_WIDTH, sizeof(char));
+        for(int j=0;j<TILE_WIDTH;j++){
+            *(*(temp+i)+j)=*(*(a+i)+j);
+
+
+        }
+    }
+    //returned memory
+    //TODO:trace the memory and free
+    char **rotated=(char **)calloc((TILE_WIDTH*4),sizeof(char *));
+    for (int i = 0,k=0,c=0; k <4 ; k++) {
+        for(int b=0,j=0;c<TILE_WIDTH;i++,c++){
+            *(rotated+i)=(char *)calloc(TILE_WIDTH, sizeof(char));
+            for(j=0;j<TILE_WIDTH;j++,b++){
+                *(*(rotated+i)+j)=*(*(temp+c)+j);
+            }
+
+        }
+        c=0;
+        rotate(temp);
+
+    }
+
+    //Free  temp memory
+    for(int i=0;i<TILE_WIDTH;i++){
+        free((void *)*(temp+i));
+    }
+    free((void *)temp);
+    return rotated;
+
+}
+
+/*
+ * Converse a array[0][25] to a array[5][5]
+ * return the result(array[5][5])
+ * */
+char **martix_transitive(char *a){
+    //a new copy of martix
+    //TODO:need to trace the memory and free
+    char **array=(char **)calloc(TILE_WIDTH,sizeof(char *));
+    for(int i=0,k=0;i<TILE_WIDTH;i++){
+         *(array+i)=(char *)calloc(TILE_WIDTH, sizeof(char));
+         for (int j = 0; j <5 ; j++,k++) {
+            *(*(array+i)+j)=*(a+k);
+ //           printf("*(a+k):%c\n",*(a+k));
+        }
+        //memcpy(*(array+i),a+(5*i),5);
+    }
+
+    return array;
+
+}
+
+void rotate(char **a) {
+    char temp=' ';
+    for (int i = 0; i < TILE_HEIGHT; ++i)
+    {
+        for (int j = 0; j < i; ++j)
+        {
+            temp = *(*(a+i)+j);
+            *(*(a+i)+j) = *(*(a+j)+i);
+            *(*(a+j)+i) = temp;
+        }
+    }
+
+    for (int i = 0; i < TILE_HEIGHT; ++i)
+    {
+        for (int j = TILE_HEIGHT - 1; j >= TILE_HEIGHT / 2; --j)
+        {
+            temp = *(*(a+i)+j);
+            *(*(a+i)+j) = *(*(a+i)+(TILE_HEIGHT - j - 1));
+            *(*(a+i)+(TILE_HEIGHT - j - 1)) = temp;
+        }
+    }
+}
+
+void show_rotated_matrix(){
+
+
+    for(int num=0;num<t.numOfTile;num++){
+        //memory leak
+        char **transitive=martix_transitive(t.tile[num]);
+
+        char **rotated=martix_rotate(transitive);
+        for(int  k=0;k<5;k++){
+            for ( int i = k;i<20 ; i=i+5) {
+                for(int j=0;j<TILE_WIDTH;j++){
+                    printf("%c",*(*(rotated+i)+j));
+                }
+
+                printf(" ");
+
+            }
+            printf("\n");
+        }
+        printf("\n");
+        for(int i=0;i<20;i++){
+        free((void *)(*(rotated+i)));
+    }
+    free((void *)rotated);
+    for(int i=0;i<5;i++){
+        free((void *)(*(transitive+i)));
+    }
+    free((void *)transitive);
+}
+}
+void print_board(){
+    for (int i = 0; i <board.height ; i++) {
+        for (int j = 0; j <board.width ; j++) {
+            printf("%c",*(*(board.board+i)+j));
+
+        }
+        printf("\n");
+
+    }
+}
+
+void handle_err(int code){
+    switch (code){
+        case 2:
+            fprintf(stderr,"Can’t access tile file\n");
+            exit(2);
+        case 3:
+            fprintf(stderr,"Invalid tile file contents\n");
+            exit(3);
+        case 4:
+            fprintf(stderr,"Invalid player type\n");
+            exit(4);
+        case 5:
+            fprintf(stderr,"Invalid dimensions.\n");
+            exit(5);
+        case 6:
+            fprintf(stderr,"Can’t access save file\n");
+            exit(6);
+        case 7:
+            fprintf(stderr,"Invalid save file contents\n");
+            exit(7);
+        case 10:
+            fprintf(stderr,"End of input\n");
+            exit(6);
+
+        default:
+            exit(11);
+
+    }
+
+}
+
